@@ -1,32 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
- *
- * Permission is hereby granted, free of charge, to anyone
- * obtaining a copy of this document and accompanying files,
- * to do whatever they want with them without any restriction,
- * including, but not limited to, copying, modification and redistribution.
- * NO WARRANTY OF ANY KIND IS PROVIDED.
- *
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
- * the The Things Network.
+ * This example sends a valid LoRaWAN packet with payload "I need coffee!"
  *
  * This uses OTAA (Over-the-air activation), where where a DevEUI and
  * application key is configured, which are used in an over-the-air
  * activation procedure where a DevAddr and session keys are
  * assigned/generated for use with all further communication.
  *
- * Note: LoRaWAN per sub-band duty-cycle limitation is enforced (1% in
- * g1, 0.1% in g2), but not the TTN fair usage policy (which is probably
- * violated by this sketch when left running for longer)!
-
  * To use this sketch, first register your application and device with
- * the things network, to set or generate an AppEUI, DevEUI and AppKey.
- * Multiple devices can use the same AppEUI, but each device has its own
- * DevEUI and AppKey.
- *
- * Do not forget to define the radio type correctly in config.h.
- *
+ * loraserver, to set or generate a DevEUI and AppKey.
  *******************************************************************************/
 
 #include <lmic.h>
@@ -37,36 +18,34 @@
 
 #define LEDPIN 2
 
+// Screen configuration
 #define OLED_I2C_ADDR 0x3C
 #define OLED_RESET 16
 #define OLED_SDA 21
 #define OLED_SCL 22
 
 unsigned int counter = 0;
-char TTN_response[30];
+char ns_response[30];
 
 SSD1306 display (OLED_I2C_ADDR, OLED_SDA, OLED_SCL);
 
 // This EUI must be in little-endian format, so least-significant-byte
-// first. When copying an EUI from ttnctl output, this means to reverse
+// first. When copying an EUI from loraserver, this means to reverse
 // the bytes.
-// This should also be in little endian format, see above.
-//For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
-// 0x70.
-static const u1_t PROGMEM APPEUI[8]={ 0x90, 0x06, 0x93, 0x70, 0x07, 0x2d, 0x50, 0x06  };   // Chose LSB mode on the console and then copy it here.
-//static const u1_t PROGMEM APPEUI[8]={ 0xCB, 0x8C, 0x28, 0xCB, 0x4B, 0xAF, 0x55, 0x00 };
-void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
-
-static const u1_t PROGMEM DEVEUI[8]={ 0x23, 0xbd, 0x73, 0x86, 0xd8, 0x5d, 0xd4, 0xd5};   // LSB mode
+static const u1_t PROGMEM DEVEUI[8]={ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};   // LSB mode
 void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
 // This key should be in big endian format (or, since it is not really a
 // number but a block of memory, endianness does not really apply). In
-// practice, a key taken from ttnctl can be copied as-is.
-// The key shown here is the semtech default key.
+// practice, a key taken from loraserver can be copied as-is.
 
-static const u1_t PROGMEM APPKEY[16] = { 0x95, 0xc1, 0x9a, 0xc0, 0xae, 0xaf, 0xef, 0xdc, 0x3a, 0xbd, 0x6f, 0xef, 0xcc, 0xbd, 0x4f, 0xb3 }; // MSB mode
+static const u1_t PROGMEM APPKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; // MSB mode
 void os_getDevKey (u1_t* buf) { memcpy_P(buf, APPKEY, 16);}
+
+// This key is not used anymore, it can be left as all zeros.
+static const u1_t PROGMEM APPEUI[8]={ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  };   // Chose LSB mode on the console and then copy it here.
+//static const u1_t PROGMEM APPEUI[8]={ 0xCB, 0x8C, 0x28, 0xCB, 0x4B, 0xAF, 0x55, 0x00 };
+void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
 
 static osjob_t sendjob;
 
@@ -86,7 +65,7 @@ const lmic_pinmap lmic_pins = {
 
 void do_send(osjob_t* j){
     // Payload to send (uplink)
-    static uint8_t message[] = "Hello OTAA!";
+    static uint8_t message[] = "I need coffee!";
 
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
@@ -128,9 +107,9 @@ void onEvent (ev_t ev) {
 
               display.drawString (0, 9, "Received DATA.");
               for ( i = 0 ; i < LMIC.dataLen ; i++ )
-                TTN_response[i] = LMIC.frame[LMIC.dataBeg+i];
-              TTN_response[i] = 0;
-              display.drawString (0, 22, String(TTN_response));
+                ns_response[i] = LMIC.frame[LMIC.dataBeg+i];
+              ns_response[i] = 0;
+              display.drawString (0, 22, String(ns_response));
               display.drawString (0, 32, String(LMIC.rssi));
               display.drawString (64,32, String(LMIC.snr));
             }
@@ -204,14 +183,9 @@ void setup() {
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
     LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
-    // Set up the channels used by the Things Network, which corresponds
+    // Set up the LoRaWAN channels, which corresponds
     // to the defaults of most gateways. Without this, only three base
-    // channels from the LoRaWAN specification are used, which certainly
-    // works, so it is good for debugging, but can overload those
-    // frequencies, so be sure to configure the full frequency range of
-    // your network here (unless your network autoconfigures them).
-    // Setting up channels should happen after LMIC_setSession, as that
-    // configures the minimal channel set.
+    // channels from the LoRaWAN specification are used.
 
     LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
@@ -222,10 +196,6 @@ void setup() {
     LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
     LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
-    // TTN defines an additional channel at 869.525Mhz using SF9 for class B
-    // devices' ping slots. LMIC does not have an easy way to define set this
-    // frequency and support for class B is spotty and untested, so this
-    // frequency is not configured here.
 
     // Disable link check validation
     LMIC_setLinkCheckMode(0);
