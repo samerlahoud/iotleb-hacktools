@@ -1,0 +1,28 @@
+Working voltage: 1.8~3.7v
+Acceptable current：10~14mA
+Transmit current: 120mA@+20dBm
+                              90mA@+17dBm
+                              29mA@+13dBm
+Operating frequency:  868M/915MHz
+Transmit power: +20dBm
+Receive sensitivity :-139dBm@LoRa &62.5Khz&SF=12&146bps
+-136dBm@LoRa &125Khz&SF=12&293bps
+-118dBm@LoRa &125Khz&SF=6&9380bps
+-123dBm@FSK&5Khz&1.2Kbps
+Frequency error：+/-15KHz
+FIFO space ：     64Byte
+Data rate ：1.2K~300Kbps@FSK
+                   0.018K~37.5Kbps@LoRa         
+Modulation Mode ：FSK,GFSK,MSK,GMSK,LoRa TM，OOK
+Interface form ： SPI
+Sleep current ：0.2uA@SLEEP
+                           1.5uA@IDLE
+Operating temperature ：-40℃- +85℃
+Digital RSSI function
+Automatic frequency correction
+Automatic gain control  
+RF wake-up function
+Fast wake-up and frequency hopping
+Highly configurable data packet handler
+SMA Antenna
+IP5306
