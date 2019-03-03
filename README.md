@@ -1,6 +1,7 @@
 # IoT-Leb Hackathon
 You can use these scripts to build your own IoT project.
 
+- `tbeam-description`: Specs and pinouts for TBeam with GPS.
 - `tbeam-gps-lorawan`: Sending GPS coordinates over LoRaWAN.
 - `tbeam-gps`: Getting GPS data.
 - `ttgo-descriptions`: Specs and pinouts for TTGO LoRa with OLED.
