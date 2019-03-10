@@ -18,3 +18,22 @@ CLK-SCK-IO14		CLK-SCK-IO14
 SD0-MISO-IO2		SD0-MISO-IO2
 			DATA2: IO12
 			DATA2: IO4
+
+
+do not use these pins
+
+ESP32          LoRa (SPI)      Display (I2C)  LED
+-----------    ----------      -------------  ------------------
+GPIO5  SCK     SCK
+GPIO27 MOSI    MOSI
+GPIO19 MISO    MISO
+GPIO18 SS      NSS
+EN     RST     RST
+GPIO26         DIO0
+GPIO33         DIO1 (see #1)
+GPIO32         DIO2 (see #2)
+GPIO22 SCL                     SCL
+GPIO21 SDA                     SDA
+GPIO22                                        useless (see #3)
+
+GPIO 2

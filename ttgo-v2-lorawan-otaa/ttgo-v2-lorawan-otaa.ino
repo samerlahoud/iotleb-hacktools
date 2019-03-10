@@ -26,6 +26,8 @@
 
 unsigned int counter = 0;
 char ns_response[30];
+int temperature_pin = 12;
+int humidity_pin = 14;
 
 SSD1306 display (OLED_I2C_ADDR, OLED_SDA, OLED_SCL);
 
@@ -50,7 +52,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 120;
+const unsigned TX_INTERVAL = 40;
 
 const lmic_pinmap lmic_pins = {
     .mosi = 27,
@@ -62,16 +64,20 @@ const lmic_pinmap lmic_pins = {
     .dio = {26, 33, 32}, //workaround to use 1 pin for all 3 radio dio pins
 };
 
-void do_send(osjob_t* j){
-    // Payload to send (uplink)
-    static uint8_t message[] = "I need coffee!";
+// LMIC code limits maximum payload size to 52 octets (see lmic.h)
+// This corresponds to datarate 0 (SF12) in specification 1.0 => worst case
+byte buffer[52];
 
+void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, message, sizeof(message)-1, 0);
+        String message = "{\"Temperature\": " + String(analogRead(temperature_pin)) +", " +"\"Humidity\": " + String(analogRead(humidity_pin)) +"}";
+        message.getBytes(buffer, message.length()+1);
+        Serial.println("Sending: "+message);
+        LMIC_setTxData2(1, (uint8_t*) buffer, message.length() , 0);
         Serial.println(F("Sending uplink packet..."));
         digitalWrite(LEDPIN, HIGH);
         display.clear();
