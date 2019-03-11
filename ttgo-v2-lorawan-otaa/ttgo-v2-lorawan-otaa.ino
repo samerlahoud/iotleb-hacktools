@@ -74,7 +74,7 @@ void do_send(osjob_t* j){
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        String message = "{\"Temperature\": " + String(analogRead(temperature_pin)) +", " +"\"Humidity\": " + String(analogRead(humidity_pin)) +"}";
+        String message = "{\"temperature\": " + String(analogRead(temperature_pin)) +", " +"\"humidity\": " + String(analogRead(humidity_pin)) +"}";
         message.getBytes(buffer, message.length()+1);
         Serial.println("Sending: "+message);
         LMIC_setTxData2(1, (uint8_t*) buffer, message.length() , 0);
